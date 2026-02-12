@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OptiFit - RPG Fitness</title>
+    <!-- Fonts & Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* 
+         * DESIGN SYSTEM
+         */
+        :root {
+            --bg-dark: #050505;
+            --bg-gradient: radial-gradient(circle at 50% 0%, #1a1a1a 0%, #050505 80%);
+            
+            --primary: #ccff00; /* Neon Lime */
+            --primary-glow: rgba(204, 255, 0, 0.5);
+            
+            --danger: #ff2a2a; /* Boss HP Red */
+            --danger-glow: rgba(255, 42, 42, 0.5);
+            
+            --glass-bg: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            
+            --text-main: #ffffff;
+            --text-muted: #888888;
+            
+            --font-main: 'Inter', sans-serif;
+            --radius-lg: 24px;
+            --radius-md: 16px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            font-family: var(--font-main);
+            background: var(--bg-dark);
+            background-image: var(--bg-gradient);
+            color: var(--text-main);
+            min-height: 100vh;
+            overflow-x: hidden;
+            display: flex;
+            justify-content: center;
+        }
+
+        /* --- UTILITIES --- */
+        .hidden { display: none !important; }
+        .fade-in { animation: fadeIn 0.8s ease-out forwards; }
+        .slide-up { animation: slideUp 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
+        .shake { animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both; }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        @keyframes shake { 10%, 90% { transform: translate3d(-2px, 0, 0); } 20%, 80% { transform: translate3d(4px, 0, 0); } 30%, 50%, 70% { transform: translate3d(-8px, 0, 0); } 40%, 60% { transform: translate3d(8px, 0, 0); } }
+        @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-15px); } 100% { transform: translateY(0px); } }
+
+        /* --- CONTAINER --- */
+        #app {
+            width: 100%;
+            max-width: 500px;
+            padding: 24px;
+            padding-bottom: 100px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* --- UI COMPONENTS --- */
+        h1, h2, h3 { letter-spacing: -0.5px; }
+        
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-lg);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: 18px;
+            border: none;
+            border-radius: var(--radius-md);
+            background: var(--primary);
+            color: black;
+            font-family: var(--font-main);
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 20px;
+        }
+
+        .btn-primary:active { transform: scale(0.98); }
+        .btn-danger { background: var(--danger); color: white; box-shadow: 0 0 15px var(--danger-glow); }
+
+        /* Inputs */
+        .input-group { margin-bottom: 24px; position: relative; }
+        .input-group label { display: block; margin-bottom: 8px; font-size: 0.8rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700; }
+        
+        input[type="text"], input[type="number"], select {
+            width: 100%;
+            padding: 16px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-md);
+            color: white;
+            font-size: 1rem;
+            font-family: var(--font-main);
+            outline: none;
+            transition: 0.3s;
+        }
+        
+        input:focus, select:focus { border-color: var(--primary); background: rgba(0,0,0,0.2); }
+
+        /* --- SECTION 1: REDESIGNED LANDING --- */
+        #landing-page { height: 90vh; display: flex; flex-direction: column; justify-content: center; }
+        
+        .hero-title {
+            font-size: 3.5rem; line-height: 1; font-weight: 900;
+            background: linear-gradient(to right, #fff, #999);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+        .hero-subtitle { color: var(--primary); font-size: 1.2rem; margin-bottom: 40px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase;}
+
+        /* --- SECTION 2: DASHBOARD --- */
+        .header-row { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 32px; }
+        .greeting { font-size: 1.8rem; font-weight: 800; }
+        .greeting span { color: var(--primary); }
+        
+        .streak-pill {
+            background: rgba(255, 77, 0, 0.15);
+            border: 1px solid rgba(255, 77, 0, 0.3);
+            color: #ff6e40;
+            padding: 6px 14px;
+            border-radius: 100px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            display: flex; align-items: center; gap: 6px;
+        }
+
+        .action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+        .action-card {
+            background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border);
+            border-radius: var(--radius-md); padding: 20px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            cursor: pointer; transition: 0.2s; height: 120px;
+        }
+        .action-card:hover { background: rgba(255,255,255,0.08); transform: translateY(-3px); }
+        .action-icon { font-size: 2rem; margin-bottom: 10px; color: var(--text-main); }
+        .action-label { font-size: 0.9rem; font-weight: 600; color: var(--text-muted); }
+
+        /* --- BOSS BATTLE STYLES --- */
+        .boss-arena { text-align: center; padding: 20px 0; }
+        
+        .boss-avatar {
+            font-size: 6rem; color: var(--text-main);
+            filter: drop-shadow(0 0 30px var(--danger-glow));
+            animation: float 4s ease-in-out infinite;
+            margin-bottom: 20px; display: inline-block;
+        }
+        
+        .health-bar-container {
+            width: 100%; height: 24px;
+            background: rgba(0,0,0,0.5); border-radius: 12px;
+            overflow: hidden; margin-bottom: 10px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .health-bar-fill {
+            height: 100%; width: 100%;
+            background: linear-gradient(90deg, #ff2a2a, #ff6e40);
+            box-shadow: 0 0 20px var(--danger);
+            transition: width 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+
+        .damage-log {
+            min-height: 20px; font-size: 0.9rem; color: var(--primary);
+            margin-bottom: 20px; font-weight: 600; font-style: italic;
+        }
+
+        /* --- VICTORY MODAL --- */
+        #victory-modal {
+            position: fixed; top:0; left:0; width:100%; height:100%;
+            background: rgba(0,0,0,0.9); z-index: 2000;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            text-align: center; padding: 30px;
+        }
+        
+        .victory-icon { font-size: 5rem; color: #ffd700; margin-bottom: 20px; animation: float 3s infinite; text-shadow: 0 0 40px rgba(255, 215, 0, 0.6); }
+
+        /* Workout List Styles */
+        .workout-list { display: flex; flex-direction: column; gap: 12px; }
+        .exercise-item {
+            display: flex; justify-content: space-between; align-items: center;
+            background: rgba(255,255,255,0.02);
+            padding: 16px 20px; border-radius: var(--radius-md);
+            cursor: pointer; transition: all 0.2s;
+        }
+        .exercise-item:hover { background: rgba(255,255,255,0.06); transform: translateX(5px); }
+        .exercise-meta h4 { font-size: 1rem; color: white; margin-bottom: 4px; }
+        .exercise-meta p { font-size: 0.8rem; color: var(--text-muted); }
+        .play-btn-small { width: 36px; height: 36px; border-radius: 50%; background: var(--glass-bg); display: flex; align-items: center; justify-content: center; color: var(--primary); }
+
+        /* --- TIMER OVERLAY --- */
+        #timer-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(5,5,5,0.95); z-index: 1000;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
+        .progress-ring__circle { transition: stroke-dashoffset 0.35s; transform: rotate(-90deg); transform-origin: 50% 50%; }
+        .timer-time { position: absolute; font-size: 4rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+        .control-btn { width: 70px; height: 70px; border-radius: 50%; border: none; font-size: 1.5rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
+        .btn-stop { background: rgba(255,255,255,0.1); color: #ff4d4d; }
+        .btn-toggle { background: var(--primary); color: black; font-size: 2rem; margin: 0 20px; }
+
+    </style>
+<link rel="stylesheet" href="/index.css">
+</head>
+<body>
+
+    <div id="app">
+        
+        <!-- SECTION 1: REDESIGNED LANDING -->
+        <section id="landing-page" class="fade-in">
+            <div>
+                <h1 class="hero-title">OPTI<br>FIT.</h1>
+                <p class="hero-subtitle">Optimize Your Human Potential.</p>
+            </div>
+
+            <div class="glass-card" style="padding: 32px;">
+                <div class="input-group">
+                    <label>Agent Name</label>
+                    <input type="text" id="user-name" placeholder="Enter codename...">
+                </div>
+
+                <div class="input-group">
+                    <label>Mission Objective</label>
+                    <select id="user-goal">
+                        <option value="weight-loss">Burn (Weight Loss)</option>
+                        <option value="strength">Power (Strength)</option>
+                        <option value="endurance">Stamina (Endurance)</option>
+                    </select>
+                </div>
+
+                <button class="btn-primary" id="btn-start">Initialize System</button>
+            </div>
+        </section>
+
+        <!-- SECTION 2: DASHBOARD -->
+        <section id="dashboard" class="hidden">
+            <!-- Header -->
+            <div class="header-row slide-up">
+                <div>
+                    <p style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px;">Welcome back</p>
+                    <div class="greeting" id="greeting-name">User</div>
+                </div>
+                <div class="streak-pill">
+                    <i class="fa-solid fa-fire"></i> <span id="streak-count">0</span>
+                </div>
+            </div>
+
+            <!-- Dashboard Actions -->
+            <div class="action-grid slide-up" style="animation-delay: 0.1s;">
+                <div class="action-card" id="card-optimizer">
+                    <i class="fa-solid fa-stopwatch action-icon" style="color: var(--primary)"></i>
+                    <span class="action-label">Time Optimizer</span>
+                </div>
+                <div class="action-card" id="card-boss">
+                    <i class="fa-solid fa-dragon action-icon" style="color: var(--danger)"></i>
+                    <span class="action-label">Boss Battle</span>
+                </div>
+            </div>
+
+            <!-- SUB-SECTION: OPTIMIZER (Default View) -->
+            <div id="view-optimizer" class="glass-card slide-up hidden" style="padding: 24px; animation-delay: 0.2s;">
+                <h3 style="margin-bottom: 20px;">Generate Workout</h3>
+                <div style="margin-bottom: 24px;">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:10px; font-weight:600;">
+                        <span style="color:var(--text-muted)">Time Available</span>
+                        <span style="color:var(--primary)"><span id="time-val">30</span> min</span>
+                    </div>
+                    <input type="range" id="time-slider" min="5" max="60" value="30" step="1">
+                </div>
+                <button class="btn-primary" id="btn-generate">Generate</button>
+                
+                <div id="workout-results" class="hidden" style="margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--glass-border);">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:16px; font-size:0.8rem; text-transform:uppercase; color:var(--text-muted);">
+                        <span>Protocol</span>
+                        <span>Total: <span id="total-time" style="color:white">0</span> min</span>
+                    </div>
+                    <div id="exercise-list" class="workout-list"></div>
+                </div>
+            </div>
+
+            <!-- SUB-SECTION: BOSS BATTLE -->
+            <div id="view-boss" class="glass-card slide-up hidden" style="padding: 24px; animation-delay: 0.2s;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px;">
+                    <h3>Boss Battle</h3>
+                    <button id="btn-back-boss" style="background:none; border:none; color:var(--text-muted); cursor:pointer;"><i class="fa-solid fa-arrow-left"></i> Back</button>
+                </div>
+
+                <div class="boss-arena">
+                    <div id="boss-avatar" class="boss-avatar">
+                        <i class="fa-solid fa-dragon"></i>
+                    </div>
+                    <h2 id="boss-name" style="margin-bottom: 8px;">Shadow Titan</h2>
+                    <div class="health-bar-container">
+                        <div id="hp-bar" class="health-bar-fill"></div>
+                    </div>
+                    <p style="color:var(--text-muted); font-size:0.9rem; margin-bottom: 4px;">HP: <span id="hp-text">100</span> / 100</p>
+                    <div id="damage-log" class="damage-log"></div>
+                </div>
+
+                <div style="background: rgba(0,0,0,0.3); padding: 16px; border-radius: var(--radius-md);">
+                    <label style="color:white; font-size:0.9rem; margin-bottom:8px; display:block;">Log Your Activity</label>
+                    <div style="display:flex; gap: 10px;">
+                        <input type="number" id="rep-input" placeholder="Reps (e.g. 20)" style="width: 60%;">
+                        <button class="btn-primary" id="btn-attack" style="width: 40%; margin-top:0; background: var(--danger); color:white;">Attack!</button>
+                    </div>
+                    <p style="font-size: 0.75rem; color:var(--text-muted); margin-top: 8px;">* 1 Rep = 1 Damage. Defeat him!</p>
+                </div>
+            </div>
+
+        </section>
+
+    </div>
+
+    <!-- TIMER OVERLAY -->
+    <div id="timer-overlay" class="hidden">
+        <h2 id="timer-label" style="margin-bottom: 10px;">Exercise</h2>
+        <div class="timer-circle" style="position: relative; width: 280px; height: 280px; margin: 40px 0; display:flex; align-items:center; justify-content:center;">
+            <svg class="progress-ring" width="280" height="280">
+                <circle class="progress-ring__circle" stroke="rgba(255,255,255,0.1)" stroke-width="12" fill="transparent" r="120" cx="140" cy="140"/>
+                <circle id="progress-indicator" class="progress-ring__circle" stroke="var(--primary)" stroke-width="12" fill="transparent" r="120" cx="140" cy="140" stroke-dasharray="754" stroke-dashoffset="0" stroke-linecap="round"/>
+            </svg>
+            <div class="timer-time" id="timer-display">00:00</div>
+        </div>
+        <div class="timer-controls">
+            <button class="control-btn btn-stop" id="btn-stop-timer"><i class="fa-solid fa-xmark"></i></button>
+            <button class="control-btn btn-toggle" id="btn-toggle-timer"><i class="fa-solid fa-pause"></i></button>
+        </div>
+    </div>
+
+    <!-- VICTORY MODAL -->
+    <div id="victory-modal" class="hidden fade-in">
+        <i class="fa-solid fa-trophy victory-icon"></i>
+        <h1 style="color: #ffd700; margin-bottom: 10px;">VICTORY!</h1>
+        <p style="color: white; margin-bottom: 30px;">The Shadow Titan has been defeated.</p>
+        <button class="btn-primary" onclick="window.location.reload()" style="background: #ffd700; color: black; max-width: 200px;">Claim Loot & Reset</button>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // --- DATA ---
+        const EXERCISES_DB = [
+            { id: 1, name: "Burpees", timeCost: 5, valueScore: 10 },
+            { id: 2, name: "Push-ups", timeCost: 3, valueScore: 7 },
+            { id: 3, name: "Jump Squats", timeCost: 4, valueScore: 9 },
+            { id: 4, name: "Plank Hold", timeCost: 2, valueScore: 5 },
+            { id: 5, name: "High Knees", timeCost: 3, valueScore: 8 },
+            { id: 6, name: "Lunges", timeCost: 4, valueScore: 6 },
+            { id: 7, name: "Mountain Climbers", timeCost: 3, valueScore: 8 },
+            { id: 8, name: "Box Jumps", timeCost: 5, valueScore: 9 },
+            { id: 9, name: "Jumping Jacks", timeCost: 3, valueScore: 6 },
+            { id: 10, name: "Pull-ups", timeCost: 4, valueScore: 10 },
+            { id: 11, name: "Bicycle Crunches", timeCost: 3, valueScore: 6 },
+            { id: 12, name: "Leg Raises", timeCost: 3, valueScore: 5 },
+            { id: 13, name: "Kettlebell Swing", timeCost: 5, valueScore: 9 },
+            { id: 14, name: "Shadow Boxing", timeCost: 5, valueScore: 7 },
+            { id: 15, name: "Sprints", timeCost: 6, valueScore: 10 }
+        ];
+
+        // --- DOM ELEMENTS ---
+        const el = {
+            // Views
+            landing: document.getElementById('landing-page'),
+            dashboard: document.getElementById('dashboard'),
+            viewOptimizer: document.getElementById('view-optimizer'),
+            viewBoss: document.getElementById('view-boss'),
+            
+            // Login
+            nameInput: document.getElementById('user-name'),
+            startBtn: document.getElementById('btn-start'),
+            greetName: document.getElementById('greeting-name'),
+            streak: document.getElementById('streak-count'),
+            
+            // Nav Cards
+            cardOpt: document.getElementById('card-optimizer'),
+            cardBoss: document.getElementById('card-boss'),
+            backBoss: document.getElementById('btn-back-boss'),
+            
+            // Optimizer
+            slider: document.getElementById('time-slider'),
+            timeVal: document.getElementById('time-val'),
+            genBtn: document.getElementById('btn-generate'),
+            results: document.getElementById('workout-results'),
+            list: document.getElementById('exercise-list'),
+            totalTime: document.getElementById('total-time'),
+            
+            // Boss
+            bossAvatar: document.getElementById('boss-avatar'),
+            hpBar: document.getElementById('hp-bar'),
+            hpText: document.getElementById('hp-text'),
+            repInput: document.getElementById('rep-input'),
+            attackBtn: document.getElementById('btn-attack'),
+            damageLog: document.getElementById('damage-log'),
+            victoryModal: document.getElementById('victory-modal'),
+            
+            // Timer
+            timerOverlay: document.getElementById('timer-overlay'),
+            timerLabel: document.getElementById('timer-label'),
+            timerDisplay: document.getElementById('timer-display'),
+            btnToggle: document.getElementById('btn-toggle-timer'),
+            btnStop: document.getElementById('btn-stop-timer'),
+            progressCircle: document.getElementById('progress-indicator')
+        };
+
+        // --- STATE ---
+        let bossState = { maxHp: 100, currentHp: 100 };
+        let timerInterval = null;
+        let totalTimeSeconds = 0;
+        let remainingSeconds = 0;
+        let isPaused = false;
+        let audioCtx;
+
+        // --- CORE FUNCTIONS ---
+
+        function initApp() {
+            const savedName = localStorage.getItem('optifit_name');
+            if (savedName) login(savedName);
+        }
+
+        function login(name) {
+            el.greetName.innerText = name;
+            // Fake streak logic
+            const s = localStorage.getItem('optifit_streak') || 0;
+            el.streak.innerText = s;
+            el.landing.classList.add('hidden');
+            el.dashboard.classList.remove('hidden');
+            // Default view
+            showSection('optimizer');
+        }
+
+        function showSection(section) {
+            el.viewOptimizer.classList.add('hidden');
+            el.viewBoss.classList.add('hidden');
+            
+            if(section === 'optimizer') el.viewOptimizer.classList.remove('hidden');
+            if(section === 'boss') el.viewBoss.classList.remove('hidden');
+        }
+
+        // --- KNAPSACK OPTIMIZER ---
+        function generateWorkout(capacity) {
+            const items = EXERCISES_DB;
+            let dp = Array.from({length: items.length + 1}, () => Array(capacity + 1).fill(0));
+            
+            for(let i=1; i<=items.length; i++) {
+                let {timeCost, valueScore} = items[i-1];
+                for(let w=0; w<=capacity; w++) {
+                    if(timeCost <= w) dp[i][w] = Math.max(dp[i-1][w], dp[i-1][w-timeCost] + valueScore);
+                    else dp[i][w] = dp[i-1][w];
+                }
+            }
+            
+            let selected = [];
+            let w = capacity;
+            for(let i=items.length; i>0; i--) {
+                if(dp[i][w] > dp[i-1][w]) {
+                    selected.push(items[i-1]);
+                    w -= items[i-1].timeCost;
+                }
+            }
+            return selected;
+        }
+
+        // --- BOSS BATTLE LOGIC ---
+        function updateBossUI() {
+            const pct = (bossState.currentHp / bossState.maxHp) * 100;
+            el.hpBar.style.width = `${pct}%`;
+            el.hpText.innerText = bossState.currentHp;
+        }
+
+        function attackBoss() {
+            const damage = parseInt(el.repInput.value);
+            if (!damage || damage <= 0) return;
+            
+            // Audio Feedback
+            playTone(150, 'sawtooth');
+
+            // Logic
+            bossState.currentHp = Math.max(0, bossState.currentHp - damage);
+            updateBossUI();
+            
+            // Visuals
+            el.bossAvatar.classList.remove('shake');
+            void el.bossAvatar.offsetWidth; // Trigger reflow
+            el.bossAvatar.classList.add('shake');
+            
+            el.damageLog.innerText = `CRITICAL HIT! -${damage} DMG`;
+            el.repInput.value = '';
+
+            // Win Condition
+            if (bossState.currentHp <= 0) {
+                setTimeout(() => {
+                    el.victoryModal.classList.remove('hidden');
+                    playTone(400, 'sine', 0.5); // Victory sound
+                }, 500);
+            }
+        }
+
+        // --- AUDIO SYSTEM ---
+        function initAudio() {
+            if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if(audioCtx.state === 'suspended') audioCtx.resume();
+        }
+
+        function playTone(freq, type = 'sine', duration = 0.1) {
+            initAudio();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            osc.start();
+            osc.stop(audioCtx.currentTime + duration);
+        }
+
+        // --- TIMER LOGIC ---
+        function startTimer(min, name) {
+            initAudio();
+            el.timerOverlay.classList.remove('hidden');
+            el.timerLabel.innerText = name;
+            totalTimeSeconds = min * 60;
+            remainingSeconds = totalTimeSeconds;
+            isPaused = false;
+            el.btnToggle.innerHTML = '<i class="fa-solid fa-pause"></i>';
+            updateTimerUI();
+            
+            clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                if(!isPaused) {
+                    remainingSeconds--;
+                    updateTimerUI();
+                    if(remainingSeconds <= 0) finishTimer();
+                }
+            }, 1000);
+        }
+
+        function updateTimerUI() {
+            const m = Math.floor(remainingSeconds / 60).toString().padStart(2, '0');
+            const s = (remainingSeconds % 60).toString().padStart(2, '0');
+            el.timerDisplay.innerText = `${m}:${s}`;
+            const offset = 754 - ((remainingSeconds/totalTimeSeconds) * 754);
+            el.progressCircle.style.strokeDashoffset = offset;
+        }
+
+        function finishTimer() {
+            clearInterval(timerInterval);
+            el.timerLabel.innerText = "DONE!";
+            playTone(880, 'square', 0.2);
+            setTimeout(() => playTone(880, 'square', 0.2), 300);
+            el.btnToggle.innerHTML = '<i class="fa-solid fa-check"></i>';
+            remainingSeconds = 0;
+        }
+
+        // --- EVENTS ---
+        el.startBtn.addEventListener('click', () => {
+            const n = el.nameInput.value.trim();
+            if(n) { localStorage.setItem('optifit_name', n); login(n); }
+        });
+
+        el.cardOpt.addEventListener('click', () => showSection('optimizer'));
+        el.cardBoss.addEventListener('click', () => showSection('boss'));
+        el.backBoss.addEventListener('click', () => showSection('optimizer'));
+
+        el.slider.addEventListener('input', (e) => el.timeVal.innerText = e.target.value);
+        
+        el.genBtn.addEventListener('click', () => {
+            const res = generateWorkout(parseInt(el.slider.value));
+            let html = '';
+            let t = 0;
+            res.forEach(ex => {
+                t += ex.timeCost;
+                html += `
+                <div class="exercise-item" onclick="startTimer(${ex.timeCost}, '${ex.name}')">
+                    <div class="exercise-meta"><h4>${ex.name}</h4><p>${ex.timeCost} min</p></div>
+                    <div class="play-btn-small"><i class="fa-solid fa-play"></i></div>
+                </div>`;
+            });
+            el.list.innerHTML = html || '<div style="text-align:center; padding:10px; color:#666">No fit found.</div>';
+            el.totalTime.innerText = t;
+            el.results.classList.remove('hidden');
+        });
+
+        el.attackBtn.addEventListener('click', attackBoss);
+        
+        // Timer Controls
+        el.btnToggle.addEventListener('click', () => {
+            if(remainingSeconds <= 0) el.timerOverlay.classList.add('hidden');
+            else {
+                isPaused = !isPaused;
+                el.btnToggle.innerHTML = isPaused ? '<i class="fa-solid fa-play"></i>' : '<i class="fa-solid fa-pause"></i>';
+            }
+        });
+        el.btnStop.addEventListener('click', () => {
+            clearInterval(timerInterval);
+            el.timerOverlay.classList.add('hidden');
+        });
+
+        initApp();
+
+    </script>
+<script type="module" src="/index.tsx"></script>
+</body>
+</html>
