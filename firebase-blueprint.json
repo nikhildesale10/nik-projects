@@ -1,0 +1,70 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "A registered user of the OPTIFIT application.",
+      "type": "object",
+      "properties": {
+        "username": {
+          "type": "string",
+          "description": "The user's display name."
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "description": "The user's email address."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The timestamp when the user account was created."
+        },
+        "role": {
+          "type": "string",
+          "enum": ["admin", "user"],
+          "description": "The user's role in the application."
+        }
+      },
+      "required": ["username", "email", "createdAt", "role"]
+    },
+    "Exercise": {
+      "title": "Exercise",
+      "description": "A fitness exercise with duration and benefit score.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "The name of the exercise."
+        },
+        "duration": {
+          "type": "integer",
+          "description": "The duration of the exercise in minutes."
+        },
+        "benefitScore": {
+          "type": "integer",
+          "description": "The benefit score (value) of the exercise."
+        },
+        "videoURL": {
+          "type": "string",
+          "format": "uri",
+          "description": "The URL of the demo video."
+        },
+        "instructions": {
+          "type": "string",
+          "description": "Step-by-step instructions for the exercise."
+        }
+      },
+      "required": ["name", "duration", "benefitScore", "videoURL", "instructions"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "Collection of user profiles."
+    },
+    "/exercises/{exerciseId}": {
+      "schema": "Exercise",
+      "description": "Collection of available exercises."
+    }
+  }
+}
